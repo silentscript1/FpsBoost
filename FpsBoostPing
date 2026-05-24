@@ -1,0 +1,641 @@
+-- ================================================
+-- S1L3NT ULTRA FPS BOOST - DARK RED EDITION
+-- Modern Performance Optimization (2026)
+-- Map-Safe | Real Performance Boost
+-- Toggle: Execute once to enable, execute again to disable
+-- UI: Dark Red + Glow Effect (Thickness 4)
+-- ================================================
+
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Check if already active
+local BoostActive = _G.SILENTFPSActive or false
+
+-- Storage for original settings
+local OriginalSettings = _G.FIQQZR7OriginalSettings or {
+    Lighting = {},
+    Camera = {},
+    PostEffects = {}
+}
+
+-- ==================== COLOR CONFIG ====================
+
+local Colors = {
+    -- Background
+    DarkBg = Color3.fromRGB(8, 8, 8),
+    DarkerBg = Color3.fromRGB(3, 3, 3),
+    CardBg = Color3.fromRGB(15, 15, 15),
+
+    -- Red + Black Theme
+    RedGlow = Color3.fromRGB(255, 40, 40),
+    RedDark = Color3.fromRGB(120, 0, 0),
+    RedBright = Color3.fromRGB(255, 0, 0),
+
+    -- Green Neon Theme
+    GreenGlow = Color3.fromRGB(0, 255, 120),
+    GreenDark = Color3.fromRGB(0, 120, 60),
+    GreenBright = Color3.fromRGB(0, 255, 170),
+
+    -- Text
+    White = Color3.fromRGB(255,255,255),
+    GrayLight = Color3.fromRGB(180,180,180),
+    GrayDark = Color3.fromRGB(100,100,100),
+
+    -- Status
+    Success = Color3.fromRGB(0,255,120),
+}
+-- ==================== UI PANEL ====================
+local function createUIPanel()
+    -- Destroy existing UI
+    local existingUI = CoreGui:FindFirstChild("FIQQZR7FPS")
+    if existingUI then existingUI:Destroy() end
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "S1LENT PING FPS"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = CoreGui
+    
+    -- Main Panel
+    local panel = Instance.new("Frame")
+    panel.Size = UDim2.new(0, 220, 0, 120)
+    panel.Position = UDim2.new(0.5, -110, 0.5, -60)
+    panel.BackgroundColor3 = Colors.DarkBg
+    panel.BackgroundTransparency = 0
+    panel.BorderSizePixel = 0
+    panel.ClipsDescendants = true
+    panel.Parent = screenGui
+    Instance.new("UICorner", panel).CornerRadius = UDim.new(0, 12)
+    
+    -- Glow Effect (Thickness 4)
+    local panelGlow = Instance.new("UIStroke", panel)
+    panelGlow.Thickness = 4
+    panelGlow.Color = Colors.RedGlow
+    panelGlow.Transparency = 0.35
+    
+    -- Background Gradient
+    local panelGradient = Instance.new("UIGradient", panel)
+    panelGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 8, 12)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 4, 8))
+    })
+    panelGradient.Rotation = 135
+    
+    -- Pulse glow animation
+    task.spawn(function()
+        while panel.Parent do
+            TweenService:Create(panelGlow, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {Transparency = 0.1, Color = Colors.RedBright}):Play()
+            task.wait(0.8)
+            TweenService:Create(panelGlow, TweenInfo.new(1.5, Enum.EasingStyle.Sine), {Transparency = 0.4, Color = Colors.RedGlow}):Play()
+            task.wait(0.8)
+        end
+    end)
+    
+    -- Title Bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 32)
+    titleBar.Position = UDim2.new(0, 0, 0, 0)
+    titleBar.BackgroundColor3 = Colors.DarkerBg
+    titleBar.BackgroundTransparency = 0
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = panel
+    Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 12)
+    
+    -- Logo Icon
+    local logoImg = Instance.new("ImageLabel", titleBar)
+    logoImg.Size = UDim2.new(0, 20, 0, 20)
+    logoImg.Position = UDim2.new(0, 8, 0.5, -10)
+    logoImg.BackgroundColor3 = Colors.RedDark
+    logoImg.BackgroundTransparency = 0.15
+    logoImg.Image = "rbxassetid://84945967838680"
+    logoImg.ScaleType = Enum.ScaleType.Fit
+    Instance.new("UICorner", logoImg).CornerRadius = UDim.new(0, 6)
+    
+    -- Title Text
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size = UDim2.new(1, -55, 1, 0)
+    titleLbl.Position = UDim2.new(0, 32, 0, 0)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = "S1LENT PING  FPS BOOST"
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.TextSize = 11
+    titleLbl.TextColor3 = Colors.White
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.Parent = titleBar
+    
+    -- Subtitle
+    local subtitle = Instance.new("TextLabel", titleBar)
+    subtitle.Size = UDim2.new(1, -55, 0, 11)
+    subtitle.Position = UDim2.new(0, 32, 0, 18)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "BY SILENT GANTENG"
+    subtitle.TextColor3 = Colors.GrayDark
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.TextSize = 7
+    subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- Close Button
+    local closeBtn = Instance.new("TextButton", titleBar)
+    closeBtn.Size = UDim2.new(0, 24, 0, 24)
+    closeBtn.Position = UDim2.new(1, -28, 0.5, -12)
+    closeBtn.BackgroundColor3 = Colors.RedDark
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Text = "✕"
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 13
+    closeBtn.TextColor3 = Colors.White
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+    
+    local closeGlow = Instance.new("UIStroke", closeBtn)
+    closeGlow.Thickness = 4
+    closeGlow.Color = Colors.RedGlow
+    closeGlow.Transparency = 0.3
+    
+    -- Content Frame
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, -20, 1, -42)
+    content.Position = UDim2.new(0, 10, 0, 38)
+    content.BackgroundTransparency = 1
+    content.Parent = panel
+    
+    -- Status Text
+    local statusText = Instance.new("TextLabel", content)
+    statusText.Size = UDim2.new(1, 0, 0, 20)
+    statusText.Position = UDim2.new(0, 0, 0, 0)
+    statusText.BackgroundTransparency = 1
+    statusText.Text = BoostActive and "● STATUS: ACTIVE" or "● STATUS: INACTIVE"
+    statusText.TextColor3 = BoostActive and Colors.GreenSuccess or Colors.GrayDark
+    statusText.Font = Enum.Font.GothamBold
+    statusText.TextSize = 10
+    statusText.TextXAlignment = Enum.TextXAlignment.Center
+    
+    -- Toggle Button
+    local toggleBtn = Instance.new("TextButton", content)
+    toggleBtn.Size = UDim2.new(1, 0, 0, 36)
+    toggleBtn.Position = UDim2.new(0, 0, 0, 28)
+    toggleBtn.BackgroundColor3 = BoostActive and Colors.RedBright or Colors.RedDark
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = BoostActive and "DISABLE FPS BOOST" or "ENABLE FPS BOOST"
+    toggleBtn.TextColor3 = Colors.White
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.TextSize = 11
+    Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 7)
+    
+    local toggleGlow = Instance.new("UIStroke", toggleBtn)
+    toggleGlow.Thickness = 4
+    toggleGlow.Color = Colors.RedGlow
+    toggleGlow.Transparency = 0.3
+    
+    -- Hover effect
+    local function addHover(btn, hoverColor)
+        local original = btn.BackgroundColor3
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = hoverColor}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = original}):Play()
+        end)
+    end
+    addHover(toggleBtn, Colors.RedBright)
+    addHover(closeBtn, Colors.RedBright)
+    
+    -- Entry animation
+    panel.Size = UDim2.new(0, 0, 0, 0)
+    panel.BackgroundTransparency = 1
+    panelGlow.Transparency = 1
+    TweenService:Create(panel, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 220, 0, 120),
+        BackgroundTransparency = 0
+    }):Play()
+    TweenService:Create(panelGlow, TweenInfo.new(0.5), {Transparency = 0.35}):Play()
+    
+    -- Dragging functionality
+    local dragging = false
+    local dragStart, startPos
+    
+    titleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or
+           input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = panel.Position
+        end
+    end)
+    
+    titleBar.InputEnded:Connect(function()
+        dragging = false
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or
+           input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            panel.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
+                                       startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    return screenGui, panel, statusText, toggleBtn, closeBtn
+end
+
+-- ==================== NOTIFICATION SYSTEM ====================
+local notifGui = nil
+
+local function ShowNotification(title, message, notifType)
+    if notifGui then notifGui:Destroy() end
+    
+    notifGui = Instance.new("ScreenGui")
+    notifGui.Name = "SILENTFPSNotif"
+    notifGui.ResetOnSpawn = false
+    notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    notifGui.DisplayOrder = 999
+    notifGui.Parent = CoreGui
+    
+    local notifFrame = Instance.new("Frame")
+    notifFrame.Size = UDim2.new(0, 260, 0, 50)
+    notifFrame.Position = UDim2.new(0.5, -130, 0, -60)
+    notifFrame.AnchorPoint = Vector2.new(0.5, 0)
+    notifFrame.BackgroundColor3 = Colors.CardBg
+    notifFrame.BackgroundTransparency = 0.05
+    notifFrame.BorderSizePixel = 0
+    notifFrame.Parent = notifGui
+    Instance.new("UICorner", notifFrame).CornerRadius = UDim.new(0, 10)
+    
+    local notifStroke = Instance.new("UIStroke", notifFrame)
+    notifStroke.Thickness = 4
+    notifStroke.Color = notifType == "success" and Colors.GreenSuccess or Colors.RedBright
+    notifStroke.Transparency = 0.3
+    
+    local icon = Instance.new("TextLabel", notifFrame)
+    icon.Size = UDim2.fromOffset(32, 32)
+    icon.Position = UDim2.new(0, 10, 0.5, -16)
+    icon.BackgroundTransparency = 1
+    icon.Text = notifType == "success" and "✓" or "⚠"
+    icon.TextColor3 = notifStroke.Color
+    icon.Font = Enum.Font.GothamBold
+    icon.TextSize = 20
+    
+    local titleLabel = Instance.new("TextLabel", notifFrame)
+    titleLabel.Size = UDim2.new(1, -56, 0, 22)
+    titleLabel.Position = UDim2.new(0, 52, 0, 6)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title
+    titleLabel.TextColor3 = Colors.White
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 12
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local msgLabel = Instance.new("TextLabel", notifFrame)
+    msgLabel.Size = UDim2.new(1, -56, 0, 18)
+    msgLabel.Position = UDim2.new(0, 52, 0, 26)
+    msgLabel.BackgroundTransparency = 1
+    msgLabel.Text = message
+    msgLabel.TextColor3 = Colors.GrayLight
+    msgLabel.Font = Enum.Font.Gotham
+    msgLabel.TextSize = 9
+    msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    TweenService:Create(notifFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0.5, -130, 0, 20)
+    }):Play()
+    
+    task.wait(2.5)
+    
+    TweenService:Create(notifFrame, TweenInfo.new(0.25), {
+        Position = UDim2.new(0.5, -130, 0, -60)
+    }):Play()
+    task.wait(0.25)
+    notifGui:Destroy()
+end
+
+-- ==================== SAVE ORIGINAL SETTINGS ====================
+local function SaveOriginalSettings()
+    pcall(function()
+        OriginalSettings.Lighting = {
+            Brightness = Lighting.Brightness,
+            GlobalShadows = Lighting.GlobalShadows,
+            OutdoorAmbient = Lighting.OutdoorAmbient,
+            Ambient = Lighting.Ambient,
+            EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
+            EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
+            Technology = Lighting.Technology
+        }
+    end)
+    
+    pcall(function()
+        local camera = Workspace.CurrentCamera
+        if camera then
+            OriginalSettings.Camera = {
+                FieldOfView = camera.FieldOfView
+            }
+        end
+    end)
+    
+    pcall(function()
+        OriginalSettings.PostEffects = {}
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("BloomEffect") or effect:IsA("BlurEffect") or 
+               effect:IsA("ColorCorrectionEffect") or effect:IsA("SunRaysEffect") or
+               effect:IsA("DepthOfFieldEffect") or effect:IsA("Atmosphere") then
+                OriginalSettings.PostEffects[effect.Name] = {
+                    Enabled = effect.Enabled,
+                    ClassName = effect.ClassName
+                }
+            end
+        end
+    end)
+    
+    _G.FIQQZR7OriginalSettings = OriginalSettings
+end
+
+-- ==================== FPS BOOST FUNCTIONS ====================
+local function ApplyFPSBoost()
+    print("════════════════════════════════════")
+    print("SILENT ULTRA FPS BOOST")
+    print("Applying optimizations...")
+    print("════════════════════════════════════")
+    
+    SaveOriginalSettings()
+    
+    -- 1. LIGHTING OPTIMIZATIONS
+    pcall(function()
+        Lighting.GlobalShadows = false
+        Lighting.Brightness = 2
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+        Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+        Lighting.Technology = Enum.Technology.Compatibility
+    end)
+    
+    -- 2. DISABLE POST-PROCESSING EFFECTS
+    pcall(function()
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("BloomEffect") or effect:IsA("BlurEffect") or 
+               effect:IsA("ColorCorrectionEffect") or effect:IsA("SunRaysEffect") or
+               effect:IsA("DepthOfFieldEffect") or effect:IsA("Atmosphere") then
+                effect.Enabled = false
+            end
+        end
+    end)
+    
+    -- 3. OPTIMIZE WORKSPACE
+    local optimizedCount = 0
+    pcall(function()
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            pcall(function()
+                if obj:IsA("BasePart") then
+                    if not obj:IsA("Terrain") and obj.Parent.Name ~= "Terrain" then
+                        obj.CastShadow = false
+                        obj.Reflectance = 0
+                        
+                        if obj.Material == Enum.Material.Neon or 
+                           obj.Material == Enum.Material.Glass or
+                           obj.Material == Enum.Material.ForceField then
+                            obj.Material = Enum.Material.SmoothPlastic
+                        end
+                        
+                        if obj:IsA("MeshPart") then
+                            obj.TextureID = ""
+                        end
+                        
+                        optimizedCount = optimizedCount + 1
+                    end
+                end
+                
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or 
+                   obj:IsA("Fire") or obj:IsA("Sparkles") then
+                    obj.Enabled = false
+                end
+                
+                if obj:IsA("Beam") or obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                    obj.Enabled = false
+                end
+            end)
+        end
+    end)
+    
+    -- 4. OPTIMIZE OTHER PLAYERS
+    local playerCount = 0
+    pcall(function()
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                pcall(function()
+                    for _, part in pairs(player.Character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CastShadow = false
+                            part.Reflectance = 0
+                        end
+                        if part:IsA("Decal") or part:IsA("Texture") then
+                            part.Transparency = 1
+                        end
+                        if part:IsA("MeshPart") and part.Parent:IsA("Accessory") then
+                            part.TextureID = ""
+                        end
+                    end
+                    playerCount = playerCount + 1
+                end)
+            end
+        end
+    end)
+    
+    -- 5. CAMERA OPTIMIZATIONS
+    pcall(function()
+        local camera = Workspace.CurrentCamera
+        if camera then
+            camera.FieldOfView = 80
+        end
+    end)
+    
+    -- 6. RENDER SETTINGS
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+    
+    -- 7. GUI OPTIMIZATIONS
+    pcall(function()
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+        if playerGui then
+            for _, gui in pairs(playerGui:GetDescendants()) do
+                if gui:IsA("BlurEffect") then
+                    gui.Enabled = false
+                end
+            end
+        end
+    end)
+    
+    -- 8. TERRAIN OPTIMIZATION
+    pcall(function()
+        local terrain = Workspace:FindFirstChildOfClass("Terrain")
+        if terrain then
+            terrain.Decoration = false
+        end
+    end)
+    
+    print("════════════════════════════════════")
+    print("✓ FPS Boost Applied Successfully!")
+    print("════════════════════════════════════")
+end
+
+-- ==================== RESTORE ORIGINAL SETTINGS ====================
+local function RestoreOriginalSettings()
+    print("════════════════════════════════════")
+    print("Restoring original settings...")
+    print("════════════════════════════════════")
+    
+    pcall(function()
+        for setting, value in pairs(OriginalSettings.Lighting) do
+            Lighting[setting] = value
+        end
+    end)
+    
+    pcall(function()
+        for effectName, data in pairs(OriginalSettings.PostEffects) do
+            local effect = Lighting:FindFirstChild(effectName)
+            if effect then
+                effect.Enabled = data.Enabled
+            end
+        end
+    end)
+    
+    pcall(function()
+        local camera = Workspace.CurrentCamera
+        if camera and OriginalSettings.Camera.FieldOfView then
+            camera.FieldOfView = OriginalSettings.Camera.FieldOfView
+        end
+    end)
+    
+    pcall(function()
+        for _, obj in pairs(Workspace:GetDescendants()) do
+            pcall(function()
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or 
+                   obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                    obj.Enabled = true
+                end
+                if obj:IsA("Beam") or obj:IsA("PointLight") or 
+                   obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                    obj.Enabled = true
+                end
+            end)
+        end
+    end)
+    
+    print("════════════════════════════════════")
+    print("✓ Original settings restored!")
+    print("════════════════════════════════════")
+end
+
+-- ==================== MAIN TOGGLE LOGIC WITH UI ====================
+local currentUI, panel, statusText, toggleBtn, closeBtn
+
+local function setupUIAndToggle()
+    currentUI, panel, statusText, toggleBtn, closeBtn = createUIPanel()
+    
+    toggleBtn.MouseButton1Click:Connect(function()
+        if BoostActive then
+            -- DISABLE BOOST
+            RestoreOriginalSettings()
+            BoostActive = false
+            _G.FIQQZR7FPSActive = false
+            
+            statusText.Text = "● STATUS: INACTIVE"
+            statusText.TextColor3 = Colors.GrayDark
+            toggleBtn.Text = "ENABLE FPS BOOST"
+            toggleBtn.BackgroundColor3 = Colors.RedDark
+            
+            ShowNotification("FIQQZR7 FPS BOOST", "FPS Boost Disabled", "warning")
+            print("FPS Boost: DISABLED")
+        else
+            -- ENABLE BOOST
+            ApplyFPSBoost()
+            BoostActive = true
+            _G.FIQQZR7FPSActive = true
+            
+            statusText.Text = "● STATUS: ACTIVE"
+            statusText.TextColor3 = Colors.GreenSuccess
+            toggleBtn.Text = "DISABLE FPS BOOST"
+            toggleBtn.BackgroundColor3 = Colors.RedBright
+            
+            ShowNotification("SILENT FPS BOOST", "FPS Boost Enabled! Game will run smoother.", "success")
+            print("FPS Boost: ENABLED")
+        end
+    end)
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        if currentUI then
+            TweenService:Create(panel, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0)
+            }):Play()
+            task.wait(0.3)
+            currentUI:Destroy()
+        end
+    end)
+    
+    -- Monitor for new players
+    pcall(function()
+        Players.PlayerAdded:Connect(function(player)
+            player.CharacterAdded:Connect(function(character)
+                if BoostActive then
+                    task.wait(0.5)
+                    pcall(function()
+                        for _, part in pairs(character:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CastShadow = false
+                                part.Reflectance = 0
+                            end
+                            if part:IsA("Decal") or part:IsA("Texture") then
+                                part.Transparency = 1
+                            end
+                            if part:IsA("MeshPart") and part.Parent:IsA("Accessory") then
+                                part.TextureID = ""
+                            end
+                        end
+                    end)
+                end
+            end)
+        end)
+    end)
+    
+    -- Monitor workspace for new parts
+    pcall(function()
+        Workspace.DescendantAdded:Connect(function(obj)
+            if BoostActive then
+                task.wait(0.1)
+                pcall(function()
+                    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or 
+                       obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") then
+                        obj.Enabled = false
+                    end
+                    if obj:IsA("Beam") or obj:IsA("PointLight") or 
+                       obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                        obj.Enabled = false
+                    end
+                    if obj:IsA("BasePart") and not obj:IsA("Terrain") then
+                        obj.CastShadow = false
+                        obj.Reflectance = 0
+                    end
+                end)
+            end
+        end)
+    end)
+end
+
+-- ==================== INIT ====================
+setupUIAndToggle()
+
+print("════════════════════════════════════")
+print("🔥 S1L3NT 3XPLOUTS9 FPS BOOST - LOADED")
+print("════════════════════════════════════")
+print("✨ UI: Dark Red + Glow Effect (Thickness 4)")
+print("✨ Click 'ENABLE FPS BOOST' to start")
+print("✨ Click 'DISABLE FPS BOOST' to restore")
+print("✨ Drag the panel by the title bar")
+print("════════════════════════════════════")
